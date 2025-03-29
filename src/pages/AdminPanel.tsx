@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import Layout from "../components/Layout";
@@ -9,7 +8,7 @@ import { Input } from "../components/ui/input";
 import { Button } from "../components/ui/button";
 import { toast } from "../hooks/use-toast";
 import { getIPFSGatewayUrl } from "../utils/ipfs";
-import { AlertCircle, UserPlus, UserMinus, Check, X, FileText, ExternalLink } from "lucide-react";
+import { AlertCircle, UserPlus, UserMinus, Check, X, FileText, ExternalLink, User } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "../components/ui/tabs";
 import { useQuery } from '@tanstack/react-query';
 
@@ -125,56 +124,6 @@ export default function AdminPanel() {
       });
     } finally {
       setIsRemovingAuditor(false);
-    }
-  }
-
-  async function loadPendingPapers() {
-    try {
-      setIsLoadingPapers(true);
-      
-      const contract = await getContract();
-      const paperCountBn = await contract.paperCount();
-      const paperCount = Number(paperCountBn);
-      
-      let pendingList: PendingPaper[] = [];
-      
-      for (let i = 1; i <= paperCount; i++) {
-        try {
-          const [owner, title, author, statusBn, verCountBn] = await contract.getPaperInfo(i);
-          const status = Number(statusBn);
-          
-          // Only collect PENDING papers (status = 0)
-          if (status === 0) {
-            // Get the first version to get IPFS hash and timestamp
-            const [ipfsHash, fileHash, timestampBn] = await contract.getVersion(i, 0);
-            
-            pendingList.push({
-              paperId: i,
-              owner,
-              title,
-              author,
-              ipfsHash,
-              timestamp: Number(timestampBn)
-            });
-          }
-        } catch (error) {
-          console.error(`Error fetching paper #${i}:`, error);
-        }
-      }
-      
-      // Sort by timestamp (newest first)
-      pendingList.sort((a, b) => b.timestamp - a.timestamp);
-      
-      setPendingPapers(pendingList);
-    } catch (error) {
-      console.error("Error loading pending papers:", error);
-      toast({
-        title: "加载失败",
-        description: "无法加载待审核论文列表",
-        variant: "destructive"
-      });
-    } finally {
-      setIsLoadingPapers(false);
     }
   }
 
@@ -447,26 +396,5 @@ export default function AdminPanel() {
         </Tabs>
       </div>
     </Layout>
-  );
-}
-
-// User component placeholder for the icons
-function User(props: React.SVGProps<SVGSVGElement>) {
-  return (
-    <svg
-      {...props}
-      xmlns="http://www.w3.org/2000/svg"
-      width="24"
-      height="24"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
-      <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" />
-      <circle cx="12" cy="7" r="4" />
-    </svg>
   );
 }
