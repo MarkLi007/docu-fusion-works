@@ -1,7 +1,7 @@
 
 import { ethers } from "ethers";
 
-// ABI is a subset of the contract interface
+// Complete ABI from the contract
 const abi = [
   "function owner() external view returns (address)",
   "function auditors(address) external view returns (bool)",
@@ -17,8 +17,8 @@ const abi = [
   "function paperCount() external view returns (uint256)"
 ];
 
-// Contract address - replace with actual deployed contract
-const contractAddress = "0x5FbDB2315678afecb367f032d93F642f64180aa3";
+// Updated contract address for Sepolia testnet
+const contractAddress = "0x1fdd9b748d0a341cceb2336d979ffabce369e71d";
 
 export async function getContract() {
   if (!window.ethereum) {
@@ -32,7 +32,8 @@ export async function getContract() {
 
 export async function getContractReadOnly() {
   if (!window.ethereum) {
-    const provider = new ethers.JsonRpcProvider("http://localhost:8545");
+    // If MetaMask is not available, connect to a public RPC endpoint
+    const provider = new ethers.JsonRpcProvider("https://sepolia.infura.io/v3/9aa3d95b3bc440fa88ea12eaa4456161");
     return new ethers.Contract(contractAddress, abi, provider);
   }
   

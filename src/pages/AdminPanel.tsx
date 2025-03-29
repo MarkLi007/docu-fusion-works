@@ -4,12 +4,14 @@ import { Link } from "react-router-dom";
 import Layout from "../components/Layout";
 import { useAuth } from "../contexts/AuthContext";
 import { getContract } from "../utils/contract";
+import { getPendingPapers } from "../utils/graph";
 import { Input } from "../components/ui/input";
 import { Button } from "../components/ui/button";
 import { toast } from "../hooks/use-toast";
 import { getIPFSGatewayUrl } from "../utils/ipfs";
 import { AlertCircle, UserPlus, UserMinus, Check, X, FileText, ExternalLink } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "../components/ui/tabs";
+import { useQuery } from '@tanstack/react-query';
 
 interface PendingPaper {
   paperId: number;
@@ -28,16 +30,19 @@ export default function AdminPanel() {
   const [isAddingAuditor, setIsAddingAuditor] = useState(false);
   const [isRemovingAuditor, setIsRemovingAuditor] = useState(false);
   
-  // Pending papers
-  const [pendingPapers, setPendingPapers] = useState<PendingPaper[]>([]);
-  const [isLoadingPapers, setIsLoadingPapers] = useState(false);
+  // Current action paper
   const [currentActionPaperId, setCurrentActionPaperId] = useState<number | null>(null);
 
-  useEffect(() => {
-    if (isConnected && (isOwner || isAuditor)) {
-      loadPendingPapers();
-    }
-  }, [isConnected, isOwner, isAuditor]);
+  // Use React Query to fetch pending papers
+  const { 
+    data: pendingPapers = [], 
+    isLoading: isLoadingPapers, 
+    refetch: loadPendingPapers 
+  } = useQuery({
+    queryKey: ['pendingPapers'],
+    queryFn: getPendingPapers,
+    enabled: isConnected && (isOwner || isAuditor),
+  });
 
   async function handleAddAuditor() {
     if (!newAuditorAddr.trim()) {
@@ -312,7 +317,7 @@ export default function AdminPanel() {
                 <Button 
                   variant="outline" 
                   size="sm" 
-                  onClick={loadPendingPapers}
+                  onClick={() => loadPendingPapers()}
                   disabled={isLoadingPapers}
                 >
                   {isLoadingPapers ? "加载中..." : "刷新列表"}
@@ -341,7 +346,7 @@ export default function AdminPanel() {
                 </div>
               ) : (
                 <div className="space-y-4">
-                  {pendingPapers.map((paper) => (
+                  {pendingPapers.map((paper: PendingPaper) => (
                     <div key={paper.paperId} className="border rounded-md p-4 hover:bg-gray-50 transition">
                       <div className="sm:flex justify-between items-start">
                         <div>

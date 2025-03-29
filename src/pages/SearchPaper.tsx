@@ -5,18 +5,24 @@ import { Input } from "../components/ui/input";
 import { Button } from "../components/ui/button";
 import { Search, Info, FileText } from "lucide-react";
 import { getContractReadOnly, PaperStatus } from "../utils/contract";
+import { searchPapers } from "../utils/graph";
 import PaperCard from "../components/PaperCard";
 import { Label } from "../components/ui/label";
 import { RadioGroup, RadioGroupItem } from "../components/ui/radio-group";
+import { useQuery } from "@tanstack/react-query";
 
 interface Paper {
-  paperId: number;
+  id: string;
   owner: string;
   title: string;
   author: string;
   status: number;
-  versionCount: number;
-  timestamp: number;
+  timestamp: string;
+  versions: {
+    versionIndex: number;
+    ipfsHash: string;
+    timestamp: string;
+  }[];
 }
 
 export default function SearchPaper() {
@@ -49,58 +55,7 @@ export default function SearchPaper() {
     setSearchPerformed(true);
     
     try {
-      const contract = await getContractReadOnly();
-      const paperCountBn = await contract.paperCount();
-      const paperCount = Number(paperCountBn);
-      
-      // Convert keyword to lowercase for case-insensitive search
-      const searchKeyword = keyword.toLowerCase();
-      
-      let results: Paper[] = [];
-      
-      // Search through all papers
-      for (let i = 1; i <= paperCount; i++) {
-        try {
-          const [owner, title, author, statusBn, verCountBn] = await contract.getPaperInfo(i);
-          const status = Number(statusBn);
-          
-          // Only include published papers
-          if (status === PaperStatus.PUBLISHED) {
-            let match = false;
-            
-            // Match based on search field
-            if (searchField === "title" && title.toLowerCase().includes(searchKeyword)) {
-              match = true;
-            } else if (searchField === "author" && author.toLowerCase().includes(searchKeyword)) {
-              match = true;
-            } else if (searchField === "id" && i.toString() === searchKeyword) {
-              match = true;
-            }
-            
-            // Include in results if matched or if no keyword (show all)
-            if (match || !searchKeyword) {
-              // Get the timestamp from the first version
-              const [ipfsHash, fileHash, timestampBn] = await contract.getVersion(i, 0);
-              
-              results.push({
-                paperId: i,
-                owner,
-                title,
-                author,
-                status,
-                versionCount: Number(verCountBn),
-                timestamp: Number(timestampBn)
-              });
-            }
-          }
-        } catch (error) {
-          console.error(`Error fetching paper #${i}:`, error);
-        }
-      }
-      
-      // Sort papers by timestamp (newest first)
-      results.sort((a, b) => b.timestamp - a.timestamp);
-      
+      const results = await searchPapers(keyword, searchField);
       setPapers(results);
     } catch (error) {
       console.error("Search error:", error);
@@ -183,14 +138,14 @@ export default function SearchPaper() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {papers.map(paper => (
               <PaperCard
-                key={paper.paperId}
-                paperId={paper.paperId}
+                key={paper.id}
+                paperId={Number(paper.id)}
                 title={paper.title}
                 author={paper.author}
-                status={paper.status}
+                status={Number(paper.status)}
                 owner={paper.owner}
-                timestamp={paper.timestamp}
-                versionCount={paper.versionCount}
+                timestamp={Number(paper.timestamp)}
+                versionCount={paper.versions.length}
               />
             ))}
           </div>
