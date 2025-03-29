@@ -55,7 +55,9 @@ export default function SearchPaper() {
     setSearchPerformed(true);
     
     try {
+      console.log("Searching with:", keyword, searchField);
       const results = await searchPapers(keyword, searchField);
+      console.log("Search results:", results);
       setPapers(results);
     } catch (error) {
       console.error("Search error:", error);

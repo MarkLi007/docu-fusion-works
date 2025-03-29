@@ -51,6 +51,15 @@ export default function AdminPanel() {
     if (success) loadPendingPapers();
   };
 
+  // Force a role check when the component mounts
+  React.useEffect(() => {
+    if (isConnected) {
+      checkRole();
+      console.log("AdminPanel: Checking role for", currentAccount);
+      console.log("AdminPanel: isOwner:", isOwner, "isAuditor:", isAuditor);
+    }
+  }, [isConnected, currentAccount]);
+
   if (!isConnected) {
     return (
       <Layout>
@@ -62,7 +71,12 @@ export default function AdminPanel() {
   if (!isOwner && !isAuditor) {
     return (
       <Layout>
-        <AuthRequiredMessage type="unauthorized" />
+        <AuthRequiredMessage 
+          type="unauthorized" 
+          isOwner={isOwner} 
+          isAuditor={isAuditor}
+          currentAccount={currentAccount}
+        />
       </Layout>
     );
   }

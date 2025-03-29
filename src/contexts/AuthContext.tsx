@@ -10,6 +10,7 @@ interface AuthContextType {
   isAuditor: boolean;
   isConnected: boolean;
   connectWallet: () => Promise<void>;
+  disconnectWallet: () => void;
   checkRole: () => Promise<void>;
 }
 
@@ -95,6 +96,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }
 
+  function disconnectWallet() {
+    setCurrentAccount("");
+    setIsConnected(false);
+    setIsOwner(false);
+    setIsAuditor(false);
+    localStorage.removeItem("token");
+    localStorage.removeItem("userRole");
+    
+    toast({
+      title: "已断开连接",
+      description: "钱包已断开连接",
+    });
+  }
+
   async function checkRole() {
     try {
       if (!window.ethereum || !currentAccount) {
@@ -105,11 +120,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       
       // Check if current account is the owner
       const ownerAddr = await contract.owner();
-      setIsOwner(currentAccount.toLowerCase() === ownerAddr.toLowerCase());
+      const isCurrentOwner = currentAccount.toLowerCase() === ownerAddr.toLowerCase();
+      setIsOwner(isCurrentOwner);
+      console.log("Owner check:", currentAccount.toLowerCase(), ownerAddr.toLowerCase(), isCurrentOwner);
       
       // Check if current account is an auditor
       const auditorFlag = await contract.auditors(currentAccount);
       setIsAuditor(auditorFlag);
+      console.log("Auditor check:", auditorFlag);
     } catch (error) {
       console.error("Error checking role:", error);
     }
@@ -140,6 +158,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         isAuditor,
         isConnected,
         connectWallet,
+        disconnectWallet,
         checkRole
       }}
     >

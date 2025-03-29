@@ -5,10 +5,9 @@ import { useAuth } from "../contexts/AuthContext";
 import { Button } from "./ui/button";
 import { Menu, X, LogOut, FileText, Upload, Search, User, Settings, Home } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { logout } from "@/utils/auth";
 
 export default function Navbar() {
-  const { currentAccount, isConnected, connectWallet } = useAuth();
+  const { currentAccount, isConnected, connectWallet, disconnectWallet } = useAuth();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const location = useLocation();
 
@@ -78,7 +77,7 @@ export default function Navbar() {
                   variant="outline"
                   size="sm"
                   className="border-white text-white hover:bg-white hover:text-paper-primary"
-                  onClick={() => logout()}
+                  onClick={() => disconnectWallet()}
                 >
                   <LogOut className="h-4 w-4 mr-1" />
                   登出
@@ -142,7 +141,7 @@ export default function Navbar() {
                 <button
                   className="flex items-center px-3 py-2 rounded-md text-sm font-medium text-white hover:bg-paper-secondary"
                   onClick={() => {
-                    logout();
+                    disconnectWallet();
                     setIsMenuOpen(false);
                   }}
                 >
