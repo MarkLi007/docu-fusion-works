@@ -4,7 +4,7 @@ import { getContractReadOnly } from './contract';
 
 // Create a client for The Graph API
 const client = new ApolloClient({
-  uri: 'https://api.thegraph.com/subgraphs/name/yoursubgraph/paper-registry', // Replace with your actual subgraph URL
+  uri: ' https://api.studio.thegraph.com/query/107809/paperregistryadvancedmultiauditorplus/v0.0.1', // Replace subgraph URL
   cache: new InMemoryCache(),
 });
 
