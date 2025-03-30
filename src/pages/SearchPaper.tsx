@@ -5,7 +5,7 @@ import { Input } from "../components/ui/input";
 import { Button } from "../components/ui/button";
 import { Search, Info, FileText } from "lucide-react";
 import { getContractReadOnly, PaperStatus } from "../utils/contract";
-import { searchPapers } from "../utils/graph";
+import { searchPapers } from "../utils/graphql/paperSearch";
 import PaperCard from "../components/PaperCard";
 import { Label } from "../components/ui/label";
 import { RadioGroup, RadioGroupItem } from "../components/ui/radio-group";

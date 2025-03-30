@@ -2,7 +2,7 @@
 import React from "react";
 import Layout from "../components/Layout";
 import { useAuth } from "../contexts/AuthContext";
-import { getPendingPapers } from "../utils/graph";
+import { getPendingPapers } from "../utils/graphql/adminPapers";
 import { useQuery } from '@tanstack/react-query';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "../components/ui/tabs";
 
