@@ -52,6 +52,15 @@ export default function SearchPaper() {
   async function handleSearch(e: React.FormEvent) {
     e.preventDefault();
     
+    if (!keyword && searchField !== 'all') {
+      toast({
+        title: "请输入搜索关键词",
+        description: "请输入标题、作者或论文ID进行搜索",
+        variant: "destructive"
+      });
+      return;
+    }
+    
     setIsLoading(true);
     setSearchPerformed(true);
     
