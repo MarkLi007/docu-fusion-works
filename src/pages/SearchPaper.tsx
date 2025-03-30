@@ -9,7 +9,7 @@ import { searchPapers } from "../utils/graph";
 import PaperCard from "../components/PaperCard";
 import { Label } from "../components/ui/label";
 import { RadioGroup, RadioGroupItem } from "../components/ui/radio-group";
-import { useQuery } from "@tanstack/react-query";
+import { useToast } from "../hooks/use-toast";
 
 interface Paper {
   id: string;
@@ -32,6 +32,7 @@ export default function SearchPaper() {
   const [isLoading, setIsLoading] = useState(false);
   const [searchPerformed, setSearchPerformed] = useState(false);
   const [totalPapers, setTotalPapers] = useState(0);
+  const { toast } = useToast();
 
   // Load total paper count on mount
   useEffect(() => {
@@ -58,9 +59,28 @@ export default function SearchPaper() {
       console.log("Searching with:", keyword, searchField);
       const results = await searchPapers(keyword, searchField);
       console.log("Search results:", results);
+      
+      if (results.length === 0) {
+        toast({
+          title: "未找到结果",
+          description: "没有找到匹配的论文，请尝试其他关键词",
+          variant: "destructive"
+        });
+      } else {
+        toast({
+          title: "搜索完成",
+          description: `找到 ${results.length} 篇匹配论文`,
+        });
+      }
+      
       setPapers(results);
     } catch (error) {
       console.error("Search error:", error);
+      toast({
+        title: "搜索失败",
+        description: (error as Error).message,
+        variant: "destructive"
+      });
     } finally {
       setIsLoading(false);
     }

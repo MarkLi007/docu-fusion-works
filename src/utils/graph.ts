@@ -1,4 +1,3 @@
-
 import { ApolloClient, InMemoryCache, gql } from '@apollo/client';
 import { getContractReadOnly } from './contract';
 
@@ -78,16 +77,51 @@ export async function searchPapersGraph(keyword: string, searchField: string) {
     `
   });
 
+  console.log("Graph search results:", data.papers);
   return data.papers;
 }
 
 // Query paper by ID directly from the contract
 export async function searchPaperById(paperId: string) {
   try {
+    console.log("Searching for paper ID:", paperId);
+    
+    // Try to get paper by ID from subgraph first
+    const { data } = await client.query({
+      query: gql`
+        query {
+          paper(id: "${paperId}") {
+            id
+            title
+            author
+            status
+            timestamp
+            owner
+            versions {
+              id
+              versionIndex
+              ipfsHash
+              timestamp
+            }
+          }
+        }
+      `
+    });
+    
+    if (data && data.paper) {
+      console.log("Found paper in subgraph:", data.paper);
+      // Return as array to match the format expected by the component
+      return [data.paper];
+    }
+    
+    // If not found in subgraph, try direct contract call
+    console.log("Paper not found in subgraph, trying contract...");
     const contract = await getContractReadOnly();
     const [owner, title, author, status, versionCount] = await contract.getPaperInfo(paperId);
     
-    if (status === 1) { // Only published papers
+    // Check if the paper exists (valid status)
+    if (Number(status) >= 0) {
+      console.log("Found paper in contract:", { owner, title, author, status });
       const [ipfsHash, fileHash, timestamp] = await contract.getVersion(paperId, 0);
       
       return [{
@@ -95,7 +129,7 @@ export async function searchPaperById(paperId: string) {
         owner,
         title,
         author,
-        status: 1,
+        status: Number(status),
         timestamp: timestamp.toString(),
         versions: [{
           versionIndex: 0,
@@ -104,6 +138,8 @@ export async function searchPaperById(paperId: string) {
         }]
       }];
     }
+    
+    console.log("Paper not found in contract");
     return [];
   } catch (error) {
     console.error("Error fetching paper by ID:", error);
@@ -113,6 +149,8 @@ export async function searchPaperById(paperId: string) {
 
 // Combined search function
 export async function searchPapers(keyword: string, searchField: string) {
+  console.log("Search function called with:", { keyword, searchField });
+  
   if (searchField === 'id' && keyword) {
     return searchPaperById(keyword);
   } else {
