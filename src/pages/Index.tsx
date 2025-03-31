@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import Layout from "../components/Layout";
@@ -7,7 +6,6 @@ import { getContractReadOnly, PaperStatus } from "../utils/contract";
 import { useAuth } from "../contexts/AuthContext";
 import PaperCard from "../components/PaperCard";
 import { FileText, Upload, Search, ChevronRight } from "lucide-react";
-
 interface Paper {
   paperId: number;
   owner: string;
@@ -17,38 +15,35 @@ interface Paper {
   versionCount: number;
   timestamp: number;
 }
-
 export default function Index() {
-  const { isConnected, connectWallet } = useAuth();
+  const {
+    isConnected,
+    connectWallet
+  } = useAuth();
   const [latestPapers, setLatestPapers] = useState<Paper[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-
   useEffect(() => {
     loadLatestPapers();
   }, []);
-
   async function loadLatestPapers() {
     try {
       setIsLoading(true);
-      
       const contract = await getContractReadOnly();
       const paperCountBn = await contract.paperCount();
       const paperCount = Number(paperCountBn);
-      
       let papers: Paper[] = [];
       let count = 0;
-      
+
       // Fetch the most recent 6 papers that are published
       for (let i = paperCount; i > 0 && count < 6; i--) {
         try {
           const [owner, title, author, statusBn, verCountBn] = await contract.getPaperInfo(i);
           const status = Number(statusBn);
-          
+
           // Only show published papers
           if (status === PaperStatus.PUBLISHED) {
             // Fetch the first version to get timestamp
             const [ipfsHash, fileHash, timestampBn] = await contract.getVersion(i, 0);
-            
             papers.push({
               paperId: i,
               owner,
@@ -64,7 +59,6 @@ export default function Index() {
           console.error(`Error fetching paper #${i}:`, error);
         }
       }
-      
       setLatestPapers(papers);
     } catch (error) {
       console.error("Error loading latest papers:", error);
@@ -72,23 +66,18 @@ export default function Index() {
       setIsLoading(false);
     }
   }
-
-  return (
-    <Layout>
+  return <Layout>
       {/* Hero Section */}
       <section className="py-12 bg-paper-light rounded-xl mb-12">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex flex-col md:flex-row items-center">
             <div className="md:w-1/2 mb-8 md:mb-0">
-              <h1 className="text-4xl md:text-5xl font-bold text-paper-primary mb-4">
-                基于区块链的论文注册系统
-              </h1>
+              <h1 className="text-4xl md:text-5xl font-bold text-paper-primary mb-4">基于区块链的论文溯源与防伪系统</h1>
               <p className="text-lg text-gray-700 mb-6">
                 安全、透明、去中心化的学术论文版权保护平台
               </p>
               <div className="flex flex-wrap gap-4">
-                {isConnected ? (
-                  <>
+                {isConnected ? <>
                     <Button className="paper-btn-primary">
                       <Upload className="h-4 w-4 mr-2" />
                       <Link to="/submit">提交论文</Link>
@@ -97,21 +86,15 @@ export default function Index() {
                       <Search className="h-4 w-4 mr-2" />
                       <Link to="/search">检索论文</Link>
                     </Button>
-                  </>
-                ) : (
-                  <Button className="paper-btn-primary" onClick={connectWallet}>
+                  </> : <Button className="paper-btn-primary" onClick={connectWallet}>
                     连接钱包
-                  </Button>
-                )}
+                  </Button>}
               </div>
             </div>
             <div className="md:w-1/2 flex justify-center">
-              <img 
-                src="https://img.freepik.com/free-vector/blockchain-technology-background_23-2147698581.jpg?w=1380&t=st=1716312781~exp=1716313381~hmac=a6f1e1f2bfc7e2a7c671f13a5cbcbdadcaf6b36e702a8f1ef1cb85c86c55cc61" 
-                alt="Blockchain Paper Registry" 
-                className="max-w-full h-auto rounded-lg shadow-lg"
-                style={{ maxHeight: "300px" }}
-              />
+              <img src="https://img.freepik.com/free-vector/blockchain-technology-background_23-2147698581.jpg?w=1380&t=st=1716312781~exp=1716313381~hmac=a6f1e1f2bfc7e2a7c671f13a5cbcbdadcaf6b36e702a8f1ef1cb85c86c55cc61" alt="Blockchain Paper Registry" className="max-w-full h-auto rounded-lg shadow-lg" style={{
+              maxHeight: "300px"
+            }} />
             </div>
           </div>
         </div>
@@ -163,10 +146,8 @@ export default function Index() {
             </Link>
           </div>
           
-          {isLoading ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {[...Array(6)].map((_, i) => (
-                <div key={i} className="paper-card animate-pulse">
+          {isLoading ? <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {[...Array(6)].map((_, i) => <div key={i} className="paper-card animate-pulse">
                   <div className="h-4 bg-gray-200 rounded w-3/4 mb-4"></div>
                   <div className="h-3 bg-gray-200 rounded w-1/2 mb-2"></div>
                   <div className="h-3 bg-gray-200 rounded w-2/3 mb-2"></div>
@@ -174,32 +155,14 @@ export default function Index() {
                   <div className="flex justify-end">
                     <div className="h-4 bg-gray-200 rounded w-20"></div>
                   </div>
-                </div>
-              ))}
-            </div>
-          ) : latestPapers.length === 0 ? (
-            <div className="text-center py-12">
+                </div>)}
+            </div> : latestPapers.length === 0 ? <div className="text-center py-12">
               <FileText className="h-12 w-12 text-gray-400 mx-auto mb-4" />
               <p className="text-lg text-gray-600">暂无已发布的论文</p>
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {latestPapers.map(paper => (
-                <PaperCard
-                  key={paper.paperId}
-                  paperId={paper.paperId}
-                  title={paper.title}
-                  author={paper.author}
-                  status={paper.status}
-                  owner={paper.owner}
-                  timestamp={paper.timestamp}
-                  versionCount={paper.versionCount}
-                />
-              ))}
-            </div>
-          )}
+            </div> : <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {latestPapers.map(paper => <PaperCard key={paper.paperId} paperId={paper.paperId} title={paper.title} author={paper.author} status={paper.status} owner={paper.owner} timestamp={paper.timestamp} versionCount={paper.versionCount} />)}
+            </div>}
         </div>
       </section>
-    </Layout>
-  );
+    </Layout>;
 }
